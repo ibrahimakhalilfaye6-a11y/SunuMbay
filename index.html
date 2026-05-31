@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SUNU MBAY — Légumes du Terroir</title>
+  <style>
+    :root {
+      --vert-principal: #2d6a4f;
+      --vert-clair: #52b788;
+      --vert-tres-clair: #d8f3dc;
+      --vert-fonce: #1b4332;
+      --vert-bg: #f0faf4;
+      --or: #e9c46a;
+      --texte: #1a2e1a;
+      --texte-muted: #4a6741;
+      --border: rgba(45,106,79,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--vert-bg); color: var(--texte); scroll-behavior: smooth; overflow-x: hidden; }
+
+    /* ── HEADER ── */
+    header { position: fixed; top: 0; left: 0; width: 100%; background: #fff; z-index: 1000; box-shadow: 0 4px 20px rgba(27,67,50,0.1); border-bottom: 2px solid var(--vert-tres-clair); }
+    .header-container { max-width: 1160px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .site-title { font-size: 1.3rem; font-weight: 800; color: var(--vert-fonce); white-space: nowrap; }
+    .site-title a { text-decoration: none; color: inherit; }
+    .site-title span { color: var(--vert-clair); }
+    .nav-desktop { display: flex; }
+    .nav-desktop a { color: var(--texte); margin: 0 10px; text-decoration: none; font-weight: 600; font-size: 0.88rem; transition: color 0.2s; white-space: nowrap; }
+    .nav-desktop a:hover { color: var(--vert-principal); }
+    .burger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
+    .burger span { display: block; width: 22px; height: 2px; background: var(--vert-fonce); border-radius: 2px; }
+    .nav-mobile { display: none; position: fixed; top: 60px; left: 0; right: 0; background: white; border-bottom: 2px solid var(--vert-tres-clair); padding: 1rem 1.5rem; flex-direction: column; z-index: 999; box-shadow: 0 8px 24px rgba(27,67,50,0.1); }
+    .nav-mobile.open { display: flex; }
+    .nav-mobile a { color: var(--texte); text-decoration: none; font-weight: 600; padding: 10px 0; border-bottom: 1px solid var(--vert-tres-clair); font-size: 0.95rem; }
+    .nav-mobile a:last-child { border-bottom: none; }
+    .panier-btn { position: relative; background: var(--vert-tres-clair); border: none; cursor: pointer; border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .panier-btn svg { width: 1.1rem; height: 1.1rem; stroke: var(--vert-fonce); }
+    .panier-btn:hover { background: #b7e4c7; }
+    .panier-count { position: absolute; top: -6px; right: -6px; background: var(--vert-principal); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+    /* ── PANIER SIDEBAR ── */
+    .panier-overlay { display: none; position: fixed; inset: 0; background: rgba(27,67,50,0.4); z-index: 2000; }
+    .panier-overlay.open { display: block; }
+    .panier-sidebar { position: fixed; top: 0; right: -100%; width: 400px; max-width: 100vw; height: 100vh; background: #f8fdf9; z-index: 2001; display: flex; flex-direction: column; transition: right 0.35s cubic-bezier(.4,0,.2,1); box-shadow: -8px 0 40px rgba(27,67,50,0.15); }
+    .panier-sidebar.open { right: 0; }
+    .panier-header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; background: var(--vert-fonce); }
+    .panier-header h2 { font-size: 1rem; color: white; margin: 0; }
+    .fermer-panier { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 1.1rem; cursor: pointer; padding: 5px 9px; border-radius: 8px; }
+    .fermer-panier:hover { background: rgba(255,255,255,0.2); }
+    .panier-items { flex: 1; overflow-y: auto; padding: 1rem 1.2rem; }
+    .panier-vide { text-align: center; color: var(--texte-muted); padding: 3rem 1rem; }
+    .panier-vide span { font-size: 3rem; display: block; margin-bottom: 1rem; }
+    .panier-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid var(--border); animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .panier-item img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+    .panier-item-info { flex: 1; }
+    .panier-item-nom { font-weight: 600; font-size: 0.88rem; color: var(--texte); margin-bottom: 3px; }
+    .panier-item-prix { color: var(--vert-principal); font-size: 0.82rem; font-weight: 700; }
+    .panier-item-qte { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .qte-btn { background: var(--vert-tres-clair); border: none; color: var(--vert-fonce); width: 24px; height: 24px; border-radius: 50%; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .qte-btn:hover { background: #b7e4c7; }
+    .qte-num { font-weight: 700; font-size: 0.85rem; min-width: 18px; text-align: center; }
+    .supprimer-item { background: none; border: none; color: #aaa; font-size: 1rem; cursor: pointer; padding: 4px; }
+    .supprimer-item:hover { color: #ef4444; }
+    .panier-footer { padding: 1.2rem; border-top: 1px solid var(--border); }
+    .panier-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--texte); }
+    .panier-total span:last-child { color: var(--vert-principal); }
+
+    /* BOUTON VALIDER COMMANDE dans le panier */
+    .btn-valider-commande { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: var(--vert-principal); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 0.6rem; transition: background 0.2s, transform 0.2s; }
+    .btn-valider-commande:hover { background: var(--vert-fonce); transform: translateY(-2px); }
+    .btn-vider { width: 100%; padding: 9px; background: transparent; color: var(--texte-muted); border: 1px solid var(--border); border-radius: 8px; font-size: 0.82rem; cursor: pointer; }
+    .btn-vider:hover { background: #fff0f0; color: #ef4444; border-color: #ef4444; }
+
+    /* ── MODAL FORMULAIRE ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(27,67,50,0.5); z-index: 3000; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(27,67,50,0.2); animation: modalIn 0.3s ease; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .modal-header { background: var(--vert-fonce); padding: 1.2rem 1.5rem; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { color: white; font-size: 1.05rem; margin: 0; }
+    .modal-fermer { background: rgba(255,255,255,0.1); border: none; color: white; font-size: 1.1rem; cursor: pointer; padding: 5px 9px; border-radius: 8px; }
+    .modal-fermer:hover { background: rgba(255,255,255,0.2); }
+    .modal-body { padding: 1.5rem; }
+
+    /* Récap produits dans modal */
+    .modal-recap { background: var(--vert-bg); border-radius: 12px; padding: 1rem; margin-bottom: 1.2rem; border: 1px solid var(--border); }
+    .modal-recap h4 { font-size: 0.82rem; font-weight: 700; color: var(--vert-principal); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.6rem; }
+    .modal-recap-item { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--texte); padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .modal-recap-item:last-child { border-bottom: none; font-weight: 700; color: var(--vert-principal); margin-top: 4px; padding-top: 8px; }
+
+    /* Champs formulaire */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 700; color: var(--texte); margin-bottom: 5px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Segoe UI', sans-serif; font-size: 0.88rem; color: var(--texte); background: var(--vert-bg); outline: none; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--vert-clair); background: white; }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .btn-envoyer-wa { width: 100%; padding: 14px; background: #25D366; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s, transform 0.2s; margin-top: 0.5rem; }
+    .btn-envoyer-wa:hover { background: #128C7E; transform: translateY(-2px); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--vert-fonce); color: white; padding: 10px 20px; border-radius: 50px; font-size: 0.88rem; font-weight: 600; z-index: 4000; transition: transform 0.4s cubic-bezier(.4,0,.2,1); white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* MAIN */
+    main { max-width: 1160px; margin: 0 auto; padding: 80px 16px 40px; }
+
+    /* HERO */
+    .hero { position: relative; border-radius: 20px; min-height: 400px; overflow: hidden; background: var(--vert-fonce); margin-top: 1rem; }
+    .banner-slider { position: absolute; inset: 0; overflow: hidden; }
+    .banner-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease; }
+    .banner-slide img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7) saturate(1.2); }
+    .banner-slide.active { opacity: 1; }
+    .banner-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(27,67,50,0.75) 0%, rgba(27,67,50,0.2) 100%); }
+    .hero-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 2.5rem 2rem; z-index: 2; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(82,183,136,0.25); border: 1px solid rgba(82,183,136,0.4); color: #d8f3dc; padding: 5px 12px; border-radius: 50px; font-size: 0.78rem; font-weight: 600; margin-bottom: 1rem; width: fit-content; }
+    .hero-content h1 { font-size: clamp(1.5rem, 4vw, 2.8rem); font-weight: 800; color: white; margin: 0 0 0.8rem; line-height: 1.2; max-width: 480px; }
+    .hero-content h1 span { color: var(--or); }
+    .hero-content p { color: rgba(255,255,255,0.8); font-size: 0.95rem; max-width: 400px; line-height: 1.6; margin-bottom: 1.5rem; }
+    .hero-btns { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+    .btn-hero-principal { background: var(--vert-clair); color: white; padding: 11px 22px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 0.88rem; transition: all 0.2s; white-space: nowrap; }
+    .btn-hero-principal:hover { background: var(--vert-principal); }
+    .btn-hero-wa { background: #25D366; color: white; padding: 11px 22px; border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 0.88rem; white-space: nowrap; }
+    .btn-hero-wa:hover { background: #128C7E; }
+    .banner-indicators { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 8px; z-index: 2; }
+    .banner-indicator { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.35); border: 1px solid rgba(255,255,255,0.6); cursor: pointer; transition: all 0.25s; }
+    .banner-indicator.active { background: white; transform: scale(1.3); }
+
+    /* STATS */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 1.5rem; }
+    .stat-item { background: white; padding: 1.2rem; text-align: center; }
+    .stat-num { font-size: 1.6rem; font-weight: 800; color: var(--vert-principal); display: block; }
+    .stat-label { color: var(--texte-muted); font-size: 0.78rem; margin-top: 3px; }
+
+    /* SECTION */
+    .section-title { font-size: 1.7rem; text-align: center; margin-bottom: 6px; color: var(--texte); font-weight: 800; }
+    .section-sous { text-align: center; color: var(--texte-muted); margin-bottom: 1.8rem; font-size: 0.9rem; }
+
+    /* PRODUITS */
+    .grid-produits { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+    .produit { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(27,67,50,0.08); transition: transform 0.25s, box-shadow 0.25s; border: 1px solid var(--border); }
+    .produit:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(27,67,50,0.14); }
+    .produit-img-wrap { position: relative; }
+    .produit img { width: 100%; height: 200px; object-fit: cover; display: block; }
+    .produit-badge { position: absolute; top: 10px; left: 10px; background: var(--vert-principal); color: white; padding: 3px 10px; border-radius: 50px; font-size: 0.68rem; font-weight: 700; }
+    .produit-badge.bio { background: var(--or); color: var(--vert-fonce); }
+    .produit-content { padding: 1rem 1.2rem 1.3rem; }
+    .produit-cat { font-size: 0.68rem; color: var(--vert-clair); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 4px; }
+    .produit-content h3 { font-size: 1rem; color: var(--texte); font-weight: 700; margin-bottom: 6px; }
+    .produit-content p { color: var(--texte-muted); font-size: 0.82rem; line-height: 1.5; margin-bottom: 10px; }
+    .produit-footer { display: flex; justify-content: space-between; align-items: center; }
+    .prix { font-size: 1.1rem; font-weight: 800; color: var(--vert-principal); }
+    .btn-ajout { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border: 2px solid var(--vert-principal); background: transparent; color: var(--vert-principal); border-radius: 50px; cursor: pointer; transition: all 0.2s; font-size: 0.8rem; font-weight: 600; }
+    .btn-ajout:hover { background: var(--vert-principal); color: white; }
+    .btn-ajout.ajoute { background: var(--vert-clair); border-color: var(--vert-clair); color: white; }
+
+    /* POURQUOI */
+    .pourquoi { background: white; padding: 4rem 2rem; margin-top: 4rem; border-top: 3px solid var(--vert-tres-clair); border-bottom: 3px solid var(--vert-tres-clair); }
+    .pourquoi-inner { max-width: 1160px; margin: 0 auto; }
+    .pourquoi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+    .pourquoi-carte { background: var(--vert-bg); border-radius: 16px; padding: 2rem 1.5rem; text-align: center; border: 1px solid var(--border); transition: transform 0.3s; }
+    .pourquoi-carte:hover { transform: translateY(-5px); }
+    .pourquoi-icone { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1rem; }
+    .pourquoi-icone.v1 { background: var(--vert-tres-clair); }
+    .pourquoi-icone.v2 { background: #d0f0e8; }
+    .pourquoi-icone.v3 { background: #fef9e7; }
+    .pourquoi-carte h3 { font-size: 1rem; font-weight: 700; color: var(--vert-fonce); margin-bottom: 0.5rem; }
+    .pourquoi-carte p { color: var(--texte-muted); font-size: 0.84rem; line-height: 1.6; }
+
+    /* FOOTER */
+    .footer-nouveau { background: var(--vert-fonce); color: white; padding: 3.5rem 2rem 0; }
+    .footer-grid { max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem; padding-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .footer-logo { font-size: 1.2rem; font-weight: 800; color: var(--vert-clair); margin-bottom: 0.8rem; }
+    .footer-desc { color: rgba(255,255,255,0.5); font-size: 0.85rem; line-height: 1.7; max-width: 260px; margin-bottom: 1.2rem; }
+    .footer-reseaux { display: flex; gap: 0.8rem; }
+    .footer-reseau { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; text-decoration: none; transition: background 0.2s, transform 0.2s; border: none; color: white; cursor: pointer; }
+    .footer-reseau svg { width: 16px; height: 16px; }
+    .footer-reseau:hover { background: var(--vert-clair); transform: translateY(-2px); }
+    .footer-col-titre { font-size: 0.9rem; font-weight: 700; color: white; margin-bottom: 1rem; }
+    .footer-contact-item, .footer-horaire-item { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.5); font-size: 0.84rem; margin-bottom: 0.7rem; }
+    .footer-bottom { max-width: 1160px; margin: 0 auto; padding: 1.2rem 0; text-align: center; color: rgba(255,255,255,0.3); font-size: 0.78rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) { .pourquoi-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 1.5rem; } .stats { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 600px) {
+      .nav-desktop { display: none; }
+      .burger { display: flex; }
+      .hero-content { padding: 1.5rem; }
+      .hero-btns { flex-direction: column; }
+      .pourquoi { padding: 2.5rem 1.2rem; }
+      main { padding: 70px 12px 30px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- OVERLAY PANIER -->
+  <div class="panier-overlay" id="panierOverlay" onclick="fermerPanier()"></div>
+
+  <!-- SIDEBAR PANIER -->
+  <div class="panier-sidebar" id="panierSidebar">
+    <div class="panier-header">
+      <h2>🛒 Mon Panier</h2>
+      <button class="fermer-panier" onclick="fermerPanier()">✕</button>
+    </div>
+    <div class="panier-items" id="panierItems">
+      <div class="panier-vide"><span>🥦</span>Votre panier est vide</div>
+    </div>
+    <div class="panier-footer" id="panierFooter" style="display:none">
+      <div class="panier-total"><span>Total</span><span id="panierTotal">0 FCFA</span></div>
+      <button class="btn-valider-commande" onclick="ouvrirModal()">
+        ✅ Valider ma commande
+      </button>
+      <button class="btn-vider" onclick="viderPanier()">🗑️ Vider le panier</button>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULAIRE -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📋 Finaliser ma commande</h3>
+        <button class="modal-fermer" onclick="fermerModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Récap produits -->
+        <div class="modal-recap">
+          <h4>🥦 Votre panier</h4>
+          <div id="modalRecap"></div>
+        </div>
+        <!-- Coordonnées -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>👤 Nom complet *</label>
+            <input type="text" id="nom" placeholder="Votre nom"/>
+          </div>
+          <div class="form-group">
+            <label>📞 Téléphone *</label>
+            <input type="tel" id="telephone" placeholder="77 XXX XX XX"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>📍 Adresse de livraison *</label>
+          <input type="text" id="adresse" placeholder="Quartier, rue, point de repère..."/>
+        </div>
+        <div class="form-group">
+          <label>💬 Message (facultatif)</label>
+          <textarea id="message" placeholder="Heure souhaitée, remarques..."></textarea>
+        </div>
+        <button class="btn-envoyer-wa" onclick="envoyerWhatsApp()">
+          💬 Envoyer la commande sur WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-container">
+      <p class="site-title"><a href="#home">🌿 SUNU<span> MBAY</span></a></p>
+      <nav class="nav-desktop">
+        <a href="#produits">Nos Légumes</a>
+        <a href="#apropos">À Propos</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="panier-btn" onclick="ouvrirPanier()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-13z"/><path d="M6 6l-2-4"/><path d="M6 18a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/><path d="M16 18a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+          <span class="panier-count" id="panierCount">0</span>
+        </button>
+        <button class="burger" onclick="toggleMenu()">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MENU MOBILE -->
+  <nav class="nav-mobile" id="navMobile">
+    <a href="#produits" onclick="toggleMenu()">🥦 Nos Légumes</a>
+    <a href="#apropos" onclick="toggleMenu()">💚 À Propos</a>
+    <a href="#contact" onclick="toggleMenu()">📞 Contact</a>
+  </nav>
+
+  <main>
+    <!-- HERO -->
+    <section id="home" class="hero">
+      <div class="banner-slider">
+        <div class="banner-slide active"><img src="legume2.jpg" alt="Légumes frais"></div>
+        <div class="banner-slide"><img src="legume4.jpg" alt="Marché légumes"></div>
+        <div class="banner-slide"><img src="legume3.jpg" alt="Ferme bio"></div>
+      </div>
+      <div class="banner-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-badge">🌱 Frais du jour · Livraison Dakar</div>
+        <h1>Des légumes <span>frais et sains</span> livrés chez vous</h1>
+        <p>Directement de la ferme à votre table. Produits locaux, qualité garantie, paiement à la livraison.</p>
+        <div class="hero-btns">
+          <a href="#produits" class="btn-hero-principal">🥬 Voir nos légumes</a>
+          <a href="https://wa.me/+221773799841" class="btn-hero-wa" target="_blank">💬 Nous contacter</a>
+        </div>
+      </div>
+      <div class="banner-indicators">
+        <button class="banner-indicator active"></button>
+        <button class="banner-indicator"></button>
+        <button class="banner-indicator"></button>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Produits locaux</span></div>
+      <div class="stat-item"><span class="stat-num">500+</span><span class="stat-label">Clients satisfaits</span></div>
+      <div class="stat-item"><span class="stat-num">24h</span><span class="stat-label">Livraison express</span></div>
+      <div class="stat-item"><span class="stat-num">0</span><span class="stat-label">Pesticides</span></div>
+    </div>
+
+    <!-- PRODUITS -->
+    <section style="margin-top:3rem" id="produits">
+      <h2 class="section-title">Nos Légumes Frais 🥦</h2>
+      <p class="section-sous">Cueillis le matin, livrés le jour même</p>
+      <div class="grid-produits">
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="chou.jpg" alt="Tomates">
+            <span class="produit-badge bio">🌿 Bio</span>
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Fruits & Légumes</div>
+            <h3>Tomates Fraîches</h3>
+            <p>Tomates juteuses cultivées localement, idéales pour vos salades et sauces.</p>
+            <div class="produit-footer">
+              <span class="prix">800 FCFA/kg</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Tomates Fraîches',800,'chou.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="carotte.jpg" alt="Carottes">
+            <span class="produit-badge">Populaire</span>
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Racines</div>
+            <h3>Carottes du Terroir</h3>
+            <p>Carottes sucrées et croquantes, riches en vitamines. Parfaites cuites ou crues.</p>
+            <div class="produit-footer">
+              <span class="prix">600 FCFA/kg</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Carottes du Terroir',600,'carotte.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="djaxatu.jpg" alt="Pommes de terre">
+            <span class="produit-badge bio">🌿 Bio</span>
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Tubercules</div>
+            <h3>Pommes de Terre</h3>
+            <p>Pommes de terre locales fermes et savoureuses. Idéales pour tous vos plats.</p>
+            <div class="produit-footer">
+              <span class="prix">500 FCFA/kg</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Pommes de Terre',500,'djaxatu.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="kandia.jpg" alt="Épinards">
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Feuilles vertes</div>
+            <h3>Épinards Frais</h3>
+            <p>Épinards tendres et nutritifs, récoltés le matin même pour une fraîcheur optimale.</p>
+            <div class="produit-footer">
+              <span class="prix">700 FCFA/botte</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Épinards Frais',700,'kandia.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="legume1.jpg" alt="Oignons">
+            <span class="produit-badge">Populaire</span>
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Condiments</div>
+            <h3>Oignons Locaux</h3>
+            <p>Oignons doux du Sénégal, indispensables dans votre cuisine quotidienne.</p>
+            <div class="produit-footer">
+              <span class="prix">400 FCFA/kg</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Oignons Locaux',400,'legume1.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+        <article class="produit">
+          <div class="produit-img-wrap">
+            <img src="legume2.jpg" alt="Poivrons">
+            <span class="produit-badge bio">🌿 Bio</span>
+          </div>
+          <div class="produit-content">
+            <div class="produit-cat">Fruits & Légumes</div>
+            <h3>Poivrons Colorés</h3>
+            <p>Poivrons rouges, jaunes et verts, gorgés de vitamines C et d'antioxydants.</p>
+            <div class="produit-footer">
+              <span class="prix">1 200 FCFA/kg</span>
+              <button class="btn-ajout" onclick="ajouterAuPanier(this,'Poivrons Colorés',1200,'legume2.jpg')">🛒 Ajouter</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- POURQUOI -->
+  <section class="pourquoi" id="apropos">
+    <div class="pourquoi-inner">
+      <h2 class="section-title">Pourquoi SUNU MBAY ? 🌿</h2>
+      <p class="section-sous">Des légumes sains directement du producteur au consommateur</p>
+      <div class="pourquoi-grid">
+        <div class="pourquoi-carte">
+          <div class="pourquoi-icone v1">✅</div>
+          <h3>Fraîcheur garantie</h3>
+          <p>Nos légumes sont récoltés le matin même et livrés dans la journée. Zéro intermédiaire entre la ferme et votre table.</p>
+        </div>
+        <div class="pourquoi-carte">
+          <div class="pourquoi-icone v2">🚚</div>
+          <h3>Livraison rapide</h3>
+          <p>Livraison express sur Dakar et ses environs en moins de 24h. Commandez le soir, recevez le lendemain matin.</p>
+        </div>
+        <div class="pourquoi-carte">
+          <div class="pourquoi-icone v3">💰</div>
+          <h3>Paiement à la livraison</h3>
+          <p>Payez à la réception de votre commande. Wave et Orange Money acceptés. Simple et sans risque.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer-nouveau" id="contact">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">🌿 SUNU MBAY</div>
+        <p class="footer-desc">Légumes frais et locaux livrés directement chez vous. Qualité garantie, paiement à la livraison.</p>
+        <div class="footer-reseaux">
+          <a class="footer-reseau" href="#" title="Facebook">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.07C22 6.42 17.52 2 12 2S2 6.42 2 12.07c0 4.84 3.44 8.85 7.94 9.76v-6.9H7.9v-2.87h2.04V9.83c0-2.02 1.2-3.13 3.03-3.13.88 0 1.81.16 1.81.16v1.99h-1.02c-1.01 0-1.32.63-1.32 1.28v1.52h2.25l-.36 2.87h-1.89v6.9C18.56 20.92 22 16.91 22 12.07z"/></svg>
+          </a>
+          <a class="footer-reseau" href="#" title="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5"/><path d="M16 11.37a4 4 0 1 1-7.99.61A4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/></svg>
+          </a>
+          <a class="footer-reseau" href="https://wa.me/+221773799841" target="_blank" title="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.47 8.85c-2.5-1.38-5.8-1.1-8.04.59-2.26 1.71-3.07 4.67-1.98 7.13.55 1.27 1.47 2.35 2.6 3.07l-.76 2.77 3.05-1.6c1.25.3 2.56.3 3.8 0 2.26-.86 3.85-2.94 3.85-5.36 0-2.1-1.05-4.06-2.82-5.2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-titre">Contact</div>
+        <div class="footer-contact-item"><span>📞</span><span>77 379 98 41</span></div>
+        <div class="footer-contact-item"><span>📧</span><span>sunumbay@gmail.com</span></div>
+        <div class="footer-contact-item"><span>📍</span><span>Dakar, Sénégal</span></div>
+      </div>
+      <div>
+        <div class="footer-col-titre">Horaires</div>
+        <div class="footer-horaire-item"><span>🕐</span><span>Lun – Sam : 7h – 20h</span></div>
+        <div class="footer-horaire-item"><span>🕐</span><span>Dimanche : 8h – 14h</span></div>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 SUNU MBAY — Tous droits réservés · Produits locaux · Livraison Dakar</div>
+  </footer>
+
+  <script>
+    // ── BURGER ──
+    function toggleMenu(){
+      document.getElementById('navMobile').classList.toggle('open');
+    }
+
+    // ── SLIDER ──
+    const slides=document.querySelectorAll('.banner-slide'),indicators=document.querySelectorAll('.banner-indicator');
+    let cur=0,timer=null;
+    const setSlide=i=>{slides.forEach((s,j)=>s.classList.toggle('active',i===j));indicators.forEach((d,j)=>d.classList.toggle('active',i===j));cur=i;};
+    indicators.forEach((d,i)=>d.addEventListener('click',()=>{setSlide(i);clearInterval(timer);timer=setInterval(()=>setSlide((cur+1)%slides.length),4500);}));
+    if(slides.length>0)timer=setInterval(()=>setSlide((cur+1)%slides.length),4500);
+
+    // ── PANIER ──
+    let panier=[];
+
+    function ajouterAuPanier(btn,nom,prix,img){
+      const ex=panier.find(p=>p.nom===nom);
+      if(ex)ex.qte++;else panier.push({nom,prix,img,qte:1});
+      btn.classList.add('ajoute');btn.textContent='✅ Ajouté !';
+      setTimeout(()=>{btn.classList.remove('ajoute');btn.innerHTML='🛒 Ajouter';},1500);
+      afficherToast(`✅ ${nom} ajouté au panier`);
+      mettreAJourPanier();
+    }
+
+    function mettreAJourPanier(){
+      const c=document.getElementById('panierItems'),f=document.getElementById('panierFooter');
+      const total=panier.reduce((s,p)=>s+p.prix*p.qte,0),count=panier.reduce((s,p)=>s+p.qte,0);
+      document.getElementById('panierCount').textContent=count;
+      if(panier.length===0){
+        c.innerHTML='<div class="panier-vide"><span>🥦</span>Votre panier est vide</div>';
+        f.style.display='none';return;
+      }
+      f.style.display='block';c.innerHTML='';
+      panier.forEach((item,i)=>{
+        const d=document.createElement('div');d.className='panier-item';
+        d.innerHTML=`<img src="${item.img}" alt="${item.nom}"/><div class="panier-item-info"><div class="panier-item-nom">${item.nom}</div><div class="panier-item-prix">${(item.prix*item.qte).toLocaleString('fr-FR')} FCFA</div><div class="panier-item-qte"><button class="qte-btn" onclick="changerQte(${i},-1)">−</button><span class="qte-num">${item.qte}</span><button class="qte-btn" onclick="changerQte(${i},1)">+</button></div></div><button class="supprimer-item" onclick="supprimerItem(${i})">✕</button>`;
+        c.appendChild(d);
+      });
+      document.getElementById('panierTotal').textContent=total.toLocaleString('fr-FR')+' FCFA';
+    }
+
+    function changerQte(i,d){panier[i].qte+=d;if(panier[i].qte<=0)panier.splice(i,1);mettreAJourPanier();}
+    function supprimerItem(i){const n=panier[i].nom;panier.splice(i,1);mettreAJourPanier();afficherToast(`🗑️ ${n} retiré`);}
+    function viderPanier(){panier=[];mettreAJourPanier();afficherToast('🗑️ Panier vidé');}
+    function ouvrirPanier(){document.getElementById('panierSidebar').classList.add('open');document.getElementById('panierOverlay').classList.add('open');}
+    function fermerPanier(){document.getElementById('panierSidebar').classList.remove('open');document.getElementById('panierOverlay').classList.remove('open');}
+
+    // ── MODAL ──
+    function ouvrirModal(){
+      if(panier.length===0){afficherToast('⚠️ Votre panier est vide !');return;}
+
+      // Remplir le récap produits dans le modal
+      const total=panier.reduce((s,p)=>s+p.prix*p.qte,0);
+      const recap=document.getElementById('modalRecap');
+      recap.innerHTML='';
+      panier.forEach(item=>{
+        const div=document.createElement('div');
+        div.className='modal-recap-item';
+        div.innerHTML=`<span>${item.nom} x${item.qte}</span><span>${(item.prix*item.qte).toLocaleString('fr-FR')} FCFA</span>`;
+        recap.appendChild(div);
+      });
+      // Ligne total
+      const tot=document.createElement('div');
+      tot.className='modal-recap-item';
+      tot.innerHTML=`<span>Total</span><span>${total.toLocaleString('fr-FR')} FCFA</span>`;
+      recap.appendChild(tot);
+
+      // Fermer le panier et ouvrir le modal
+      fermerPanier();
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function fermerModal(){
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+
+    // Fermer modal en cliquant dehors
+    document.getElementById('modalOverlay').addEventListener('click', function(e){
+      if(e.target === this) fermerModal();
+    });
+
+    // ── ENVOYER SUR WHATSAPP ──
+    function envoyerWhatsApp(){
+      const nom=document.getElementById('nom').value.trim();
+      const tel=document.getElementById('telephone').value.trim();
+      const adresse=document.getElementById('adresse').value.trim();
+      const message=document.getElementById('message').value.trim();
+
+      if(!nom||!tel||!adresse){
+        alert('⚠️ Veuillez remplir votre nom, téléphone et adresse !');
+        return;
+      }
+
+      const total=panier.reduce((s,p)=>s+p.prix*p.qte,0);
+      const listeProduits=panier.map(p=>`• ${p.nom} x${p.qte} = ${(p.prix*p.qte).toLocaleString('fr-FR')} FCFA`).join('%0A');
+
+      let msg=`Bonjour SUNU MBAY 🌿%0A%0A`;
+      msg+=`*🛒 Nouvelle commande*%0A%0A`;
+      msg+=`👤 *Nom :* ${nom}%0A`;
+      msg+=`📞 *Téléphone :* ${tel}%0A`;
+      msg+=`📍 *Adresse :* ${adresse}%0A%0A`;
+      msg+=`🥦 *Produits commandés :*%0A${listeProduits}%0A%0A`;
+      msg+=`💰 *Total : ${total.toLocaleString('fr-FR')} FCFA*%0A%0A`;
+      if(message) msg+=`💬 *Note :* ${message}%0A%0A`;
+      msg+=`✅ Merci de confirmer ma commande !`;
+
+      window.open(`https://wa.me/+221773799841?text=${msg}`, '_blank');
+
+      // Réinitialiser
+      fermerModal();
+      viderPanier();
+      afficherToast('✅ Commande envoyée sur WhatsApp !');
+
+      // Vider les champs
+      document.getElementById('nom').value='';
+      document.getElementById('telephone').value='';
+      document.getElementById('adresse').value='';
+      document.getElementById('message').value='';
+    }
+
+    // ── TOAST ──
+    let tt;
+    function afficherToast(msg){
+      const t=document.getElementById('toast');
+      t.textContent=msg;t.classList.add('show');
+      clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2500);
+    }
+
+    mettreAJourPanier();
+  </script>
+</body>
+</html>
